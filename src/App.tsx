@@ -6,11 +6,16 @@ import { TeachersView } from './components/TeachersView';
 import { SalarySlipsView } from './components/SalarySlipsView';
 import { SettingsView } from './components/SettingsView';
 import { PublicSlipView } from './components/PublicSlipView';
-import { LayoutDashboard, Users, FileText, School, Settings } from 'lucide-react';
+import { LoginView } from './components/LoginView';
+import { LayoutDashboard, Users, FileText, School, Settings, LogOut, Loader2 } from 'lucide-react';
+import { auth, signOut } from './lib/firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
   const [publicSlipId, setPublicSlipId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const store = useAppStore();
 
   useEffect(() => {
@@ -22,11 +27,35 @@ export default function App() {
         setPublicSlipId(id);
       }
     }
+
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   if (publicSlipId) {
     return <PublicSlipView slipId={publicSlipId} />;
   }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mb-4" />
+        <p className="text-slate-500 font-medium">Memuat sistem...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginView />;
+  }
+
+  const handleLogout = () => {
+    signOut(auth);
+  };
 
   const renderContent = () => {
     switch (currentView) {
@@ -128,8 +157,30 @@ export default function App() {
           </button>
         </nav>
 
-        <div className="p-6 border-t border-slate-800 text-xs text-slate-500">
-          &copy; {new Date().getFullYear()} {store.settings.schoolName || 'Madrasah Ibtidaiyah'}.
+        <div className="p-6 border-t border-slate-800">
+          <div className="flex items-center gap-3 mb-4 px-2">
+            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white shrink-0 font-bold uppercase overflow-hidden">
+              {user.photoURL ? (
+                <img src={user.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                user.email?.[0] || 'A'
+              )}
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-sm font-medium text-white truncate">{user.displayName || 'Admin'}</p>
+              <p className="text-xs text-slate-400 truncate">{user.email}</p>
+            </div>
+          </div>
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 justify-center px-4 py-2 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 hover:text-white transition-colors text-sm font-medium"
+          >
+            <LogOut size={16} />
+            Logout
+          </button>
+          <div className="mt-4 text-xs text-slate-500 text-center">
+            &copy; {new Date().getFullYear()} {store.settings.schoolName || 'Madrasah Ibtidaiyah'}.
+          </div>
         </div>
       </aside>
 
