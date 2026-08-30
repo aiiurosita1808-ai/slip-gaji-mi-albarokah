@@ -1,15 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ViewState } from './types';
 import { useAppStore } from './store';
 import { DashboardView } from './components/DashboardView';
 import { TeachersView } from './components/TeachersView';
 import { SalarySlipsView } from './components/SalarySlipsView';
 import { SettingsView } from './components/SettingsView';
+import { PublicSlipView } from './components/PublicSlipView';
 import { LayoutDashboard, Users, FileText, School, Settings } from 'lucide-react';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
+  const [publicSlipId, setPublicSlipId] = useState<string | null>(null);
   const store = useAppStore();
+
+  useEffect(() => {
+    // Basic routing for public slip viewer
+    const path = window.location.pathname;
+    if (path.startsWith('/slip/')) {
+      const id = path.split('/slip/')[1];
+      if (id) {
+        setPublicSlipId(id);
+      }
+    }
+  }, []);
+
+  if (publicSlipId) {
+    return <PublicSlipView slipId={publicSlipId} />;
+  }
 
   const renderContent = () => {
     switch (currentView) {

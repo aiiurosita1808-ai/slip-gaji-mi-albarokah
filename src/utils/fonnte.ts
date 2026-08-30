@@ -2,6 +2,7 @@ import { SalarySlip } from '../types';
 import { formatRupiah } from '../utils';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { handleHtml2CanvasOnClone } from './pdfHelper';
 
 export function formatSalarySlipMessage(slip: SalarySlip): string {
   const penerimaanLines: string[] = [
@@ -30,6 +31,8 @@ export function formatSalarySlipMessage(slip: SalarySlip): string {
     `• Iuran Qurban: ${formatRupiah(slip.potonganQurban)}`
   ];
 
+  const slipUrl = `${window.location.origin}/slip/${slip.id}`;
+
   return `*SLIP GAJI GURU & STAFF*
 *${slip.schoolName || 'MI AL-BAROKAH'}*
 PERIODE: *${slip.month.toUpperCase()} ${slip.year}*
@@ -51,7 +54,9 @@ ${potonganLines.join('\n')}
 *TOTAL DITERIMA (A-B): ${formatRupiah(slip.netSalary)}*
 ==========================
 
-_Dokumen PDF Slip Gaji Resmi terlampir._
+*📄 Lihat & Download Slip Gaji:*
+${slipUrl}
+
 _Dibuat oleh: ${slip.createdByName || 'Bendahara'}_`;
 }
 
@@ -60,7 +65,14 @@ export async function generatePdfBlobFromElement(elementId: string, filename: st
   if (!element) return null;
 
   try {
-    const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff', logging: false });
+    const canvas = await html2canvas(element, { 
+      scale: 2, 
+      backgroundColor: '#ffffff', 
+      logging: false,
+      onclone: (clonedDoc, clonedElement) => {
+        handleHtml2CanvasOnClone(clonedDoc, clonedElement);
+      }
+    });
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
     
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -115,15 +127,10 @@ export async function sendSlipViaFonnte(params: {
     formData.append('target', cleanPhone);
     formData.append('message', messageText);
     formData.append('countryCode', '62');
-    formData.append('filename', filename);
-
-    if (elementId) {
-      const pdfFile = await generatePdfBlobFromElement(elementId, filename);
-      if (pdfFile) {
-        formData.append('file', pdfFile);
-      }
-    }
-
+    
+    // We don't append the file parameter anymore because we send a public download link instead,
+    // which bypasses Fonnte's file limits and speeds up the delivery.
+    
     const response = await fetch('https://api.fonnte.com/send', {
       method: 'POST',
       headers: {

@@ -7,6 +7,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  getDoc,
   getDocs,
   writeBatch
 } from 'firebase/firestore';
@@ -26,6 +27,7 @@ export {
   setDoc,
   updateDoc,
   deleteDoc,
+  getDoc,
   getDocs,
   writeBatch
 };

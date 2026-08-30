@@ -5,15 +5,17 @@ import { Printer, ArrowLeft, Download, Image as ImageIcon, Loader2, Send, CheckC
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { sendSlipViaFonnte, openDirectWhatsappWeb } from '../utils/fonnte';
+import { handleHtml2CanvasOnClone } from '../utils/pdfHelper';
 
 interface SlipPreviewProps {
   slip: SalarySlip;
   teacher?: Teacher;
   settings?: SchoolSettings;
-  onBack: () => void;
+  onBack?: () => void;
+  isPublic?: boolean;
 }
 
-export function SlipPreview({ slip, teacher, settings, onBack }: SlipPreviewProps) {
+export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipPreviewProps) {
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [isDownloadingPng, setIsDownloadingPng] = useState(false);
   const [isSendingWa, setIsSendingWa] = useState(false);
@@ -73,7 +75,14 @@ export function SlipPreview({ slip, teacher, settings, onBack }: SlipPreviewProp
 
     try {
       setIsDownloadingPdf(true);
-      const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff', logging: false });
+      const canvas = await html2canvas(element, { 
+        scale: 2, 
+        backgroundColor: '#ffffff', 
+        logging: false,
+        onclone: (clonedDoc, clonedElement) => {
+          handleHtml2CanvasOnClone(clonedDoc, clonedElement);
+        }
+      });
       const imgData = canvas.toDataURL('image/jpeg', 0.98);
       
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -97,7 +106,14 @@ export function SlipPreview({ slip, teacher, settings, onBack }: SlipPreviewProp
 
     try {
       setIsDownloadingPng(true);
-      const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff' });
+      const canvas = await html2canvas(element, { 
+        scale: 2, 
+        backgroundColor: '#ffffff',
+        logging: false,
+        onclone: (clonedDoc, clonedElement) => {
+          handleHtml2CanvasOnClone(clonedDoc, clonedElement);
+        }
+      });
       const image = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = image;
@@ -115,34 +131,40 @@ export function SlipPreview({ slip, teacher, settings, onBack }: SlipPreviewProp
     <div className="max-w-4xl mx-auto">
       {/* Action Controls - Hidden during print */}
       <div className="mb-6 flex flex-wrap justify-between items-center gap-3 print:hidden">
-        <button 
-          onClick={onBack}
-          className="flex items-center gap-2 px-4 py-2 text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors font-medium shadow-sm"
-        >
-          <ArrowLeft size={18} />
-          <span>Kembali</span>
-        </button>
+        <div>
+          {!isPublic && onBack && (
+            <button 
+              onClick={onBack}
+              className="flex items-center gap-2 px-4 py-2 text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors font-medium shadow-sm"
+            >
+              <ArrowLeft size={18} />
+              <span>Kembali</span>
+            </button>
+          )}
+        </div>
         
         <div className="flex flex-wrap items-center gap-2">
           {/* Kirim WhatsApp (Fonnte API) */}
-          <button
-            onClick={handleSendWhatsapp}
-            disabled={isSendingWa}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition-colors shadow-sm font-medium text-sm disabled:opacity-50"
-            title="Kirim Otomatis Slip & PDF via Fonnte WA Gateway"
-          >
-            {isSendingWa ? (
-              <>
-                <Loader2 size={16} className="animate-spin" />
-                <span>Mengirim PDF WA...</span>
-              </>
-            ) : (
-              <>
-                <Send size={16} />
-                <span>Kirim WA (Fonnte + PDF)</span>
-              </>
-            )}
-          </button>
+          {!isPublic && (
+            <button
+              onClick={handleSendWhatsapp}
+              disabled={isSendingWa}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition-colors shadow-sm font-medium text-sm disabled:opacity-50"
+              title="Kirim Otomatis Slip via Fonnte WA Gateway"
+            >
+              {isSendingWa ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  <span>Mengirim Link WA...</span>
+                </>
+              ) : (
+                <>
+                  <Send size={16} />
+                  <span>Kirim WA (Link Download)</span>
+                </>
+              )}
+            </button>
+          )}
 
           {/* Download PNG */}
           <button 
