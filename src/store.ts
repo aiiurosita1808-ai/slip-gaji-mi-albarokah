@@ -58,7 +58,7 @@ const INITIAL_TEACHERS: Teacher[] = [
 export function useAppStore() {
   const [teachers, setTeachers] = useState<Teacher[]>(() => {
     const saved = localStorage.getItem('mi_teachers');
-    return saved ? JSON.parse(saved) : INITIAL_TEACHERS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [slips, setSlips] = useState<SalarySlip[]>(() => {
@@ -73,25 +73,28 @@ export function useAppStore() {
 
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Real-time Firestore Sync for Teachers
+  // Real-time Firestore Sync for Teachers (Cloud = Single Source of Truth)
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'teachers'), (snapshot) => {
-      if (!snapshot.empty) {
-        const loaded: Teacher[] = [];
-        snapshot.forEach((docSnap) => {
-          loaded.push({ id: docSnap.id, ...docSnap.data() } as Teacher);
+      const loaded: Teacher[] = [];
+      snapshot.forEach((docSnap) => {
+        loaded.push({ id: docSnap.id, ...docSnap.data() } as Teacher);
+      });
+
+      const isSeeded = localStorage.getItem('mi_firestore_teachers_seeded');
+      if (loaded.length === 0 && !isSeeded) {
+        localStorage.setItem('mi_firestore_teachers_seeded', 'true');
+        INITIAL_TEACHERS.forEach((t) => {
+          setDoc(doc(db, 'teachers', t.id), t).catch(err => console.warn('Seed error:', err));
         });
+        setTeachers(INITIAL_TEACHERS);
+      } else {
         setTeachers(loaded);
         localStorage.setItem('mi_teachers', JSON.stringify(loaded));
-      } else {
-        // Seed initial teachers if empty
-        INITIAL_TEACHERS.forEach(t => {
-          setDoc(doc(db, 'teachers', t.id), t).catch(err => console.warn('Seed teacher error:', err));
-        });
       }
       setLoading(false);
     }, (err) => {
-      console.warn('Firestore teachers listener notice:', err.message);
+      console.warn('Firestore teachers sync notice:', err.message);
       setLoading(false);
     });
 
@@ -108,7 +111,7 @@ export function useAppStore() {
       setSlips(loaded);
       localStorage.setItem('mi_slips', JSON.stringify(loaded));
     }, (err) => {
-      console.warn('Firestore slips listener notice:', err.message);
+      console.warn('Firestore slips sync notice:', err.message);
     });
 
     return () => unsub();
@@ -123,11 +126,10 @@ export function useAppStore() {
         setSettings(loaded);
         localStorage.setItem('mi_settings', JSON.stringify(loaded));
       } else {
-        // Seed default settings if empty
         setDoc(settingsDocRef, DEFAULT_SETTINGS).catch(err => console.warn('Seed settings error:', err));
       }
     }, (err) => {
-      console.warn('Firestore settings listener notice:', err.message);
+      console.warn('Firestore settings sync notice:', err.message);
     });
 
     return () => unsub();
@@ -140,7 +142,7 @@ export function useAppStore() {
     try {
       await setDoc(doc(db, 'school_settings', 'config'), updated, { merge: true });
     } catch (err) {
-      console.warn('Updating settings in Firestore:', err);
+      console.warn('Firestore update settings error:', err);
     }
   };
 
@@ -155,7 +157,7 @@ export function useAppStore() {
     try {
       await setDoc(doc(db, 'teachers', newId), newTeacher);
     } catch (err) {
-      console.warn('Adding teacher to Firestore:', err);
+      console.warn('Firestore add teacher error:', err);
     }
   };
 
@@ -168,7 +170,7 @@ export function useAppStore() {
     try {
       await updateDoc(doc(db, 'teachers', id), updates);
     } catch (err) {
-      console.warn('Updating teacher in Firestore:', err);
+      console.warn('Firestore update teacher error:', err);
     }
   };
 
@@ -181,14 +183,14 @@ export function useAppStore() {
     try {
       await deleteDoc(doc(db, 'teachers', id));
     } catch (err) {
-      console.warn('Deleting teacher from Firestore:', err);
+      console.warn('Firestore delete teacher error:', err);
     }
   };
 
   const clearAllTeachers = async () => {
     const oldTeachers = [...teachers];
     setTeachers([]);
-    localStorage.removeItem('mi_teachers');
+    localStorage.setItem('mi_teachers', JSON.stringify([]));
     try {
       const batch = writeBatch(db);
       oldTeachers.forEach(t => {
@@ -196,7 +198,7 @@ export function useAppStore() {
       });
       await batch.commit();
     } catch (err) {
-      console.warn('Clearing teachers in Firestore:', err);
+      console.warn('Firestore clear teachers error:', err);
     }
   };
 
@@ -211,7 +213,7 @@ export function useAppStore() {
     try {
       await setDoc(doc(db, 'salary_slips', newId), newSlip);
     } catch (err) {
-      console.warn('Adding slip to Firestore:', err);
+      console.warn('Firestore add slip error:', err);
     }
   };
 
@@ -224,7 +226,7 @@ export function useAppStore() {
     try {
       await deleteDoc(doc(db, 'salary_slips', id));
     } catch (err) {
-      console.warn('Deleting slip from Firestore:', err);
+      console.warn('Firestore delete slip error:', err);
     }
   };
 
