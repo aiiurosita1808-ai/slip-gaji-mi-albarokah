@@ -1,0 +1,69 @@
+{
+  "entities": {
+    "teachers": {
+      "title": "Teachers",
+      "description": "Master data guru dan staff",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nip": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "position": { "type": "string" },
+        "tugasTambahan": { "type": "string" },
+        "masaKerja": { "type": "string" },
+        "jtmCount": { "type": "number" },
+        "rpJtm": { "type": "number" },
+        "bebanJTM": { "type": "number" },
+        "baseSalary": { "type": "number" },
+        "insentifWalas": { "type": "number" },
+        "insentifKinerjaTahunan": { "type": "number" },
+        "insentifKinerjaBulanan": { "type": "number" },
+        "insentifTusasTambahan": { "type": "number" },
+        "insentifEskul": { "type": "number" },
+        "tunjanganMasaKerja": { "type": "number" },
+        "tunjanganPendidikan": { "type": "number" },
+        "tunjanganBPJS": { "type": "number" },
+        "tunjanganQurban": { "type": "number" },
+        "potonganBPJSKetenagakerjaan": { "type": "number" },
+        "potonganQurban": { "type": "number" }
+      },
+      "required": ["name", "position"]
+    },
+    "salary_slips": {
+      "title": "Salary Slips",
+      "description": "Riwayat slip gaji guru",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "month": { "type": "string" },
+        "year": { "type": "number" },
+        "schoolName": { "type": "string" },
+        "teacherName": { "type": "string" },
+        "teacherPhone": { "type": "string" },
+        "totalPenerimaan": { "type": "number" },
+        "totalPotongan": { "type": "number" },
+        "netSalary": { "type": "number" },
+        "issueDate": { "type": "string" }
+      },
+      "required": ["teacherId", "month", "year", "netSalary"]
+    },
+    "school_settings": {
+      "title": "School Settings",
+      "description": "Pengaturan sekolah dan WhatsApp Fonnte",
+      "type": "object",
+      "properties": {
+        "schoolName": { "type": "string" },
+        "subTitle": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "headmasterName": { "type": "string" },
+        "treasurerName": { "type": "string" },
+        "defaultRpJtm": { "type": "number" },
+        "fonnteToken": { "type": "string" }
+      }
+    }
+  }
+}

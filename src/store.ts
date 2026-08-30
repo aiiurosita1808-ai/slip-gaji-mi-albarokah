@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Teacher, SalarySlip, SchoolSettings } from './types';
+import { db, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, writeBatch } from './lib/firebase';
 
 const DEFAULT_SETTINGS: SchoolSettings = {
   schoolName: 'MI AL-BAROKAH',
@@ -70,46 +71,161 @@ export function useAppStore() {
     return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
   });
 
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Real-time Firestore Sync for Teachers
   useEffect(() => {
-    localStorage.setItem('mi_teachers', JSON.stringify(teachers));
-  }, [teachers]);
+    const unsub = onSnapshot(collection(db, 'teachers'), (snapshot) => {
+      if (!snapshot.empty) {
+        const loaded: Teacher[] = [];
+        snapshot.forEach((docSnap) => {
+          loaded.push({ id: docSnap.id, ...docSnap.data() } as Teacher);
+        });
+        setTeachers(loaded);
+        localStorage.setItem('mi_teachers', JSON.stringify(loaded));
+      } else {
+        // Seed initial teachers if empty
+        INITIAL_TEACHERS.forEach(t => {
+          setDoc(doc(db, 'teachers', t.id), t).catch(err => console.warn('Seed teacher error:', err));
+        });
+      }
+      setLoading(false);
+    }, (err) => {
+      console.warn('Firestore teachers listener notice:', err.message);
+      setLoading(false);
+    });
 
+    return () => unsub();
+  }, []);
+
+  // Real-time Firestore Sync for Slips
   useEffect(() => {
-    localStorage.setItem('mi_slips', JSON.stringify(slips));
-  }, [slips]);
+    const unsub = onSnapshot(collection(db, 'salary_slips'), (snapshot) => {
+      const loaded: SalarySlip[] = [];
+      snapshot.forEach((docSnap) => {
+        loaded.push({ id: docSnap.id, ...docSnap.data() } as SalarySlip);
+      });
+      setSlips(loaded);
+      localStorage.setItem('mi_slips', JSON.stringify(loaded));
+    }, (err) => {
+      console.warn('Firestore slips listener notice:', err.message);
+    });
 
+    return () => unsub();
+  }, []);
+
+  // Real-time Firestore Sync for School Settings
   useEffect(() => {
-    localStorage.setItem('mi_settings', JSON.stringify(settings));
-  }, [settings]);
+    const settingsDocRef = doc(db, 'school_settings', 'config');
+    const unsub = onSnapshot(settingsDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const loaded = docSnap.data() as SchoolSettings;
+        setSettings(loaded);
+        localStorage.setItem('mi_settings', JSON.stringify(loaded));
+      } else {
+        // Seed default settings if empty
+        setDoc(settingsDocRef, DEFAULT_SETTINGS).catch(err => console.warn('Seed settings error:', err));
+      }
+    }, (err) => {
+      console.warn('Firestore settings listener notice:', err.message);
+    });
 
-  const updateSettings = (newSettings: Partial<SchoolSettings>) => {
-    setSettings(prev => ({ ...prev, ...newSettings }));
+    return () => unsub();
+  }, []);
+
+  const updateSettings = async (newSettings: Partial<SchoolSettings>) => {
+    const updated = { ...settings, ...newSettings };
+    setSettings(updated);
+    localStorage.setItem('mi_settings', JSON.stringify(updated));
+    try {
+      await setDoc(doc(db, 'school_settings', 'config'), updated, { merge: true });
+    } catch (err) {
+      console.warn('Updating settings in Firestore:', err);
+    }
   };
 
-  const addTeacher = (teacher: Omit<Teacher, 'id'>) => {
-    const newTeacher = { ...teacher, id: crypto.randomUUID() };
-    setTeachers(prev => [...prev, newTeacher]);
+  const addTeacher = async (teacher: Omit<Teacher, 'id'>) => {
+    const newId = crypto.randomUUID();
+    const newTeacher: Teacher = { ...teacher, id: newId };
+    setTeachers(prev => {
+      const updated = [...prev, newTeacher];
+      localStorage.setItem('mi_teachers', JSON.stringify(updated));
+      return updated;
+    });
+    try {
+      await setDoc(doc(db, 'teachers', newId), newTeacher);
+    } catch (err) {
+      console.warn('Adding teacher to Firestore:', err);
+    }
   };
 
-  const updateTeacher = (id: string, updates: Partial<Teacher>) => {
-    setTeachers(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+  const updateTeacher = async (id: string, updates: Partial<Teacher>) => {
+    setTeachers(prev => {
+      const updated = prev.map(t => t.id === id ? { ...t, ...updates } : t);
+      localStorage.setItem('mi_teachers', JSON.stringify(updated));
+      return updated;
+    });
+    try {
+      await updateDoc(doc(db, 'teachers', id), updates);
+    } catch (err) {
+      console.warn('Updating teacher in Firestore:', err);
+    }
   };
 
-  const deleteTeacher = (id: string) => {
-    setTeachers(prev => prev.filter(t => t.id !== id));
+  const deleteTeacher = async (id: string) => {
+    setTeachers(prev => {
+      const updated = prev.filter(t => t.id !== id);
+      localStorage.setItem('mi_teachers', JSON.stringify(updated));
+      return updated;
+    });
+    try {
+      await deleteDoc(doc(db, 'teachers', id));
+    } catch (err) {
+      console.warn('Deleting teacher from Firestore:', err);
+    }
   };
 
-  const clearAllTeachers = () => {
+  const clearAllTeachers = async () => {
+    const oldTeachers = [...teachers];
     setTeachers([]);
+    localStorage.removeItem('mi_teachers');
+    try {
+      const batch = writeBatch(db);
+      oldTeachers.forEach(t => {
+        batch.delete(doc(db, 'teachers', t.id));
+      });
+      await batch.commit();
+    } catch (err) {
+      console.warn('Clearing teachers in Firestore:', err);
+    }
   };
 
-  const addSlip = (slip: Omit<SalarySlip, 'id'>) => {
-    const newSlip = { ...slip, id: crypto.randomUUID() };
-    setSlips(prev => [...prev, newSlip]);
+  const addSlip = async (slip: Omit<SalarySlip, 'id'>) => {
+    const newId = crypto.randomUUID();
+    const newSlip: SalarySlip = { ...slip, id: newId };
+    setSlips(prev => {
+      const updated = [...prev, newSlip];
+      localStorage.setItem('mi_slips', JSON.stringify(updated));
+      return updated;
+    });
+    try {
+      await setDoc(doc(db, 'salary_slips', newId), newSlip);
+    } catch (err) {
+      console.warn('Adding slip to Firestore:', err);
+    }
   };
 
-  const deleteSlip = (id: string) => {
-    setSlips(prev => prev.filter(s => s.id !== id));
+  const deleteSlip = async (id: string) => {
+    setSlips(prev => {
+      const updated = prev.filter(s => s.id !== id);
+      localStorage.setItem('mi_slips', JSON.stringify(updated));
+      return updated;
+    });
+    try {
+      await deleteDoc(doc(db, 'salary_slips', id));
+    } catch (err) {
+      console.warn('Deleting slip from Firestore:', err);
+    }
   };
 
   return {
@@ -123,5 +239,6 @@ export function useAppStore() {
     deleteSlip,
     settings,
     updateSettings,
+    loading,
   };
 }
