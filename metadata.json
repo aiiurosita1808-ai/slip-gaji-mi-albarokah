@@ -1,0 +1,6 @@
+{
+  "name": "Sistem Slip Gaji Guru MI",
+  "description": "Aplikasi manajemen dan cetak slip gaji guru Madrasah Ibtidaiyah.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
