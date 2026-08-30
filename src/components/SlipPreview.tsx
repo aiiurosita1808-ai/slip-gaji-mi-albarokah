@@ -235,10 +235,22 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
       >
         
         {/* Title */}
-        <div className="text-center font-bold mb-6">
-          <h1 className="text-2xl sm:text-3xl tracking-wider uppercase text-slate-900 font-extrabold">SLIP GAJI</h1>
-          <h2 className="text-xl sm:text-2xl uppercase text-slate-900 mt-0.5 font-bold">{slip.schoolName || 'MI AL-BAROKAH'}</h2>
-          <p className="text-xs font-semibold text-slate-500 uppercase mt-1">PERIODE: {slip.month} {slip.year}</p>
+        <div className="flex items-center justify-between gap-4 mb-6 border-b-2 border-emerald-600 pb-4">
+          <div className="w-20 sm:w-24 shrink-0 flex items-center justify-center">
+            {settings?.logoImage ? (
+              <img src={settings.logoImage} alt="Logo" className="max-w-[80px] sm:max-w-[96px] h-auto object-contain" />
+            ) : (
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-300">
+                <ImageIcon size={24} />
+              </div>
+            )}
+          </div>
+          <div className="text-center flex-1">
+            <h1 className="text-2xl sm:text-3xl tracking-wider uppercase text-slate-900 font-extrabold">SLIP GAJI</h1>
+            <h2 className="text-xl sm:text-2xl uppercase text-slate-900 mt-0.5 font-bold">{slip.schoolName || 'MI AL-BAROKAH'}</h2>
+            <p className="text-xs font-semibold text-slate-500 uppercase mt-1">PERIODE: {slip.month} {slip.year}</p>
+          </div>
+          <div className="w-20 sm:w-24 shrink-0"></div> {/* Spacer for symmetry */}
         </div>
 
         {/* Header Metadata Info (2 Columns) */}
@@ -461,9 +473,33 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
         {/* Signature Section */}
         <div className="mt-12 flex justify-end">
           <div className="text-center min-w-[220px]">
-            <p className="font-medium text-slate-800 mb-20">Dibuat Oleh</p>
-            <div className="w-52 border-b border-slate-800 mx-auto"></div>
-            <p className="text-sm font-semibold text-slate-800 mt-1">
+            <p className="mb-1 text-slate-600 text-sm">Sumedang, {new Date(slip.issueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            <p className="font-bold text-slate-800 mb-2">Bendahara / Pembuat Slip</p>
+            
+            <div className="relative h-28 flex items-center justify-center my-2">
+              {/* Stamp (behind signature) */}
+              {settings?.stampImage && (
+                <img 
+                  src={settings.stampImage} 
+                  alt="Stempel" 
+                  className="absolute top-1/2 left-1/4 -translate-x-4 -translate-y-1/2 w-28 h-28 object-contain opacity-75 mix-blend-multiply pointer-events-none" 
+                />
+              )}
+              {/* Signature (front) */}
+              {settings?.signatureImage && (
+                <img 
+                  src={settings.signatureImage} 
+                  alt="Tanda Tangan" 
+                  className="relative z-10 w-40 h-24 object-contain pointer-events-none" 
+                />
+              )}
+              {/* Placeholder line if no signature */}
+              {!settings?.signatureImage && (
+                <div className="w-48 border-b-2 border-slate-300 absolute bottom-4 left-1/2 -translate-x-1/2"></div>
+              )}
+            </div>
+
+            <p className="font-bold text-slate-900 underline underline-offset-4">
               {slip.createdByName || 'Bendahara'}
             </p>
           </div>

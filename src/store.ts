@@ -215,6 +215,7 @@ export function useAppStore() {
     } catch (err) {
       console.warn('Firestore add slip error:', err);
     }
+    return newId;
   };
 
   const deleteSlip = async (id: string) => {

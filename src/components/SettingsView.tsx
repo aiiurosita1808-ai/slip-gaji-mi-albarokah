@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { SchoolSettings } from '../types';
-import { Building2, UserCheck, Calculator, Save, CheckCircle2, MessageSquare, Key, ExternalLink } from 'lucide-react';
+import { Building2, UserCheck, Calculator, Save, CheckCircle2, MessageSquare, Key, ExternalLink, Image as ImageIcon, Trash2 } from 'lucide-react';
 
 interface SettingsViewProps {
   settings: SchoolSettings;
@@ -21,6 +21,47 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
     onUpdateSettings(formData);
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'logoImage' | 'signatureImage' | 'stampImage') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 400;
+        const MAX_HEIGHT = 400;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        const resizedBase64 = canvas.toDataURL('image/png', 0.8);
+        handleChange(field, resizedBase64);
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -118,8 +159,8 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
               <UserCheck size={20} />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-800">Penanggung Jawab & Tanda Tangan</h2>
-              <p className="text-xs text-slate-500">Nama pejabat yang akan ditampilkan pada tanda tangan slip.</p>
+              <h2 className="text-base font-bold text-slate-800">Penanggung Jawab & Visual Slip</h2>
+              <p className="text-xs text-slate-500">Nama pejabat serta logo, stempel, dan tanda tangan (otomatis dicetak di slip).</p>
             </div>
           </div>
 
@@ -145,6 +186,78 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
                 className="w-full px-3.5 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 placeholder="misal: Hj. Siti Aminah, S.Ag"
               />
+            </div>
+          </div>
+
+          {/* Visual Assets */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-100 mt-4">
+            {/* Logo */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
+                <span>Logo Madrasah</span>
+                {formData.logoImage && (
+                  <button type="button" onClick={() => handleChange('logoImage', '')} className="text-red-500 hover:text-red-700 text-xs flex items-center gap-1">
+                    <Trash2 size={12} /> Hapus
+                  </button>
+                )}
+              </label>
+              <div className="relative border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center p-2 h-32 overflow-hidden hover:bg-slate-100 transition-colors">
+                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'logoImage')} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                {formData.logoImage ? (
+                  <img src={formData.logoImage} alt="Logo" className="w-full h-full object-contain" />
+                ) : (
+                  <div className="text-center text-slate-400">
+                    <ImageIcon size={24} className="mx-auto mb-1 opacity-50" />
+                    <span className="text-xs">Upload Logo</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Signature */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
+                <span>Tanda Tangan</span>
+                {formData.signatureImage && (
+                  <button type="button" onClick={() => handleChange('signatureImage', '')} className="text-red-500 hover:text-red-700 text-xs flex items-center gap-1">
+                    <Trash2 size={12} /> Hapus
+                  </button>
+                )}
+              </label>
+              <div className="relative border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center p-2 h-32 overflow-hidden hover:bg-slate-100 transition-colors">
+                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'signatureImage')} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                {formData.signatureImage ? (
+                  <img src={formData.signatureImage} alt="TTD" className="w-full h-full object-contain" />
+                ) : (
+                  <div className="text-center text-slate-400">
+                    <ImageIcon size={24} className="mx-auto mb-1 opacity-50" />
+                    <span className="text-xs">Upload TTD (PNG)</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Stamp */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
+                <span>Stempel Madrasah</span>
+                {formData.stampImage && (
+                  <button type="button" onClick={() => handleChange('stampImage', '')} className="text-red-500 hover:text-red-700 text-xs flex items-center gap-1">
+                    <Trash2 size={12} /> Hapus
+                  </button>
+                )}
+              </label>
+              <div className="relative border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center p-2 h-32 overflow-hidden hover:bg-slate-100 transition-colors">
+                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, 'stampImage')} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                {formData.stampImage ? (
+                  <img src={formData.stampImage} alt="Stempel" className="w-full h-full object-contain mix-blend-multiply" />
+                ) : (
+                  <div className="text-center text-slate-400">
+                    <ImageIcon size={24} className="mx-auto mb-1 opacity-50" />
+                    <span className="text-xs">Upload Stempel (PNG)</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

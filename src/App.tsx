@@ -11,6 +11,10 @@ import { LayoutDashboard, Users, FileText, School, Settings, LogOut, Loader2 } f
 import { auth, signOut } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
+const ALLOWED_EMAILS = [
+  'aiiurosita1808@gmail.com'
+];
+
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
   const [publicSlipId, setPublicSlipId] = useState<string | null>(null);
@@ -56,6 +60,30 @@ export default function App() {
   const handleLogout = () => {
     signOut(auth);
   };
+
+  const isUserAdmin = user.email && ALLOWED_EMAILS.includes(user.email);
+
+  if (!isUserAdmin) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <LogOut size={32} />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-800 mb-2">Akses Ditolak</h1>
+          <p className="text-slate-600 mb-8">
+            Akun <strong>{user.email}</strong> tidak memiliki akses sebagai Admin ke sistem ini.
+          </p>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 bg-red-600 text-white px-4 py-3 rounded-xl hover:bg-red-700 transition-colors font-medium shadow-sm"
+          >
+            Kembali & Logout
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const renderContent = () => {
     switch (currentView) {

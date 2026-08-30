@@ -83,6 +83,9 @@ export interface SchoolSettings {
   treasurerName: string;
   defaultRpJtm: number;
   fonnteToken?: string;
+  logoImage?: string; // base64
+  signatureImage?: string; // base64
+  stampImage?: string; // base64
 }
 
 export type ViewState = 'dashboard' | 'teachers' | 'slips' | 'settings';

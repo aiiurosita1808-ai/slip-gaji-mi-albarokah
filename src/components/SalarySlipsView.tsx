@@ -1,21 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Teacher, SalarySlip, SchoolSettings } from '../types';
 import { formatRupiah, MONTHS } from '../utils';
-import { Plus, Printer, Trash2, Filter, Download, Send } from 'lucide-react';
+import { Plus, Printer, Trash2, Filter, Download, Send, Play, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { SlipPreview } from './SlipPreview';
 import { exportSlipsToExcel } from '../utils/excelHelper';
-
+import { sendSlipViaFonnte } from '../utils/fonnte';
 
 interface SalarySlipsViewProps {
   teachers: Teacher[];
   slips: SalarySlip[];
-  onAddSlip: (slip: Omit<SalarySlip, 'id'>) => void;
+  onAddSlip: (slip: Omit<SalarySlip, 'id'>) => Promise<string | void>;
   onDeleteSlip: (id: string) => void;
   settings?: SchoolSettings;
 }
 
 export function SalarySlipsView({ teachers, slips, onAddSlip, onDeleteSlip, settings }: SalarySlipsViewProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [selectedSlip, setSelectedSlip] = useState<SalarySlip | null>(null);
   const [deletingSlip, setDeletingSlip] = useState<SalarySlip | null>(null);
   const [filterMonth, setFilterMonth] = useState<string>(MONTHS[new Date().getMonth()]);
@@ -28,6 +29,14 @@ export function SalarySlipsView({ teachers, slips, onAddSlip, onDeleteSlip, sett
   const [slipMonth, setSlipMonth] = useState<string>(MONTHS[new Date().getMonth()]);
   const [slipYear, setSlipYear] = useState<number>(new Date().getFullYear());
   const [notes, setNotes] = useState<string>('');
+
+  // Bulk Send State
+  const [bulkMonth, setBulkMonth] = useState<string>(MONTHS[new Date().getMonth()]);
+  const [bulkYear, setBulkYear] = useState<number>(new Date().getFullYear());
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState({ total: 0, current: 0, success: 0, failed: 0 });
+  const [bulkLogs, setBulkLogs] = useState<{name: string, status: 'success'|'failed'|'skipped', message: string}[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Editable Slip Items
   const [baseSalary, setBaseSalary] = useState<number>(0);
@@ -135,6 +144,123 @@ export function SalarySlipsView({ teachers, slips, onAddSlip, onDeleteSlip, sett
     handleCloseModal();
   };
 
+  const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+  const processBulkSend = async () => {
+    if (!settings?.fonnteToken) {
+      alert('Token Fonnte belum diatur. Silakan atur di menu Pengaturan terlebih dahulu.');
+      return;
+    }
+
+    setIsBulkProcessing(true);
+    setBulkLogs([]);
+    setBulkProgress({ total: teachers.length, current: 0, success: 0, failed: 0 });
+    
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
+    let successCount = 0;
+    let failedCount = 0;
+
+    for (let i = 0; i < teachers.length; i++) {
+      if (signal.aborted) break;
+      
+      const teacher = teachers[i];
+      setBulkProgress(prev => ({ ...prev, current: i + 1 }));
+
+      if (!teacher.phone || teacher.phone.trim() === '') {
+        setBulkLogs(prev => [...prev, { name: teacher.name, status: 'skipped', message: 'Tidak ada nomor WhatsApp' }]);
+        continue;
+      }
+
+      // Generate Slip Data automatically based on standard config
+      const slipTTotalP = (teacher.baseSalary || 0) + (teacher.bebanJTM || 0) + (teacher.insentifWalas || 0) + 
+                          (teacher.insentifKinerjaTahunan || 0) + (teacher.insentifKinerjaBulanan || 0) + 
+                          (teacher.tunjanganMasaKerja || 0) + (teacher.tunjanganPendidikan || 0) + 
+                          (teacher.tunjanganBPJS || 0) + (teacher.tunjanganQurban || 0);
+      
+      const slipTTotalPot = (teacher.potonganBPJSKetenagakerjaan || 0) + (teacher.potonganQurban || 0);
+
+      const slipData: Omit<SalarySlip, 'id'> = {
+        teacherId: teacher.id,
+        month: bulkMonth,
+        year: bulkYear,
+        schoolName: settings.schoolName || 'MI AL-BAROKAH',
+        teacherName: teacher.name,
+        teacherPhone: teacher.phone || '',
+        position: teacher.position,
+        tugasTambahan: teacher.tugasTambahan || '',
+        masaKerja: teacher.masaKerja || '',
+        baseSalary: teacher.baseSalary || 0,
+        bebanJTM: teacher.bebanJTM || 0,
+        insentifWalas: teacher.insentifWalas || 0,
+        insentifKinerjaTahunan: teacher.insentifKinerjaTahunan || 0,
+        insentifKinerjaBulanan: teacher.insentifKinerjaBulanan || 0,
+        tunjanganMasaKerja: teacher.tunjanganMasaKerja || 0,
+        tunjanganPendidikan: teacher.tunjanganPendidikan || 0,
+        tunjanganBPJS: teacher.tunjanganBPJS || 0,
+        tunjanganQurban: teacher.tunjanganQurban || 0,
+        potonganBPJSKetenagakerjaan: teacher.potonganBPJSKetenagakerjaan || 0,
+        potonganQurban: teacher.potonganQurban || 0,
+        totalPenerimaan: slipTTotalP,
+        totalPotongan: slipTTotalPot,
+        netSalary: slipTTotalP - slipTTotalPot,
+        issueDate: new Date().toISOString(),
+        createdByName: settings.treasurerName || 'Bendahara',
+        notes: ''
+      };
+
+      try {
+        const newId = await onAddSlip(slipData);
+        if (newId) {
+          const completeSlip: SalarySlip = { ...slipData, id: newId };
+          
+          // Send via Fonnte
+          const sendRes = await sendSlipViaFonnte({
+            slip: completeSlip,
+            phone: teacher.phone,
+            token: settings.fonnteToken
+          });
+
+          if (sendRes.success) {
+            successCount++;
+            setBulkLogs(prev => [...prev, { name: teacher.name, status: 'success', message: 'Terkirim' }]);
+          } else {
+            failedCount++;
+            setBulkLogs(prev => [...prev, { name: teacher.name, status: 'failed', message: sendRes.message }]);
+          }
+
+          // Delay for 30 seconds to prevent WA Ban unless it's the very last iteration or aborted
+          if (i < teachers.length - 1 && !signal.aborted) {
+            // we do a loop to allow early abort
+            for (let w = 0; w < 30; w++) {
+              if (signal.aborted) break;
+              await sleep(1000);
+            }
+          }
+
+        } else {
+          failedCount++;
+          setBulkLogs(prev => [...prev, { name: teacher.name, status: 'failed', message: 'Gagal membuat data slip' }]);
+        }
+      } catch (err: any) {
+        failedCount++;
+        setBulkLogs(prev => [...prev, { name: teacher.name, status: 'failed', message: err.message || 'Error' }]);
+      }
+      
+      setBulkProgress(prev => ({ ...prev, success: successCount, failed: failedCount }));
+    }
+
+    setIsBulkProcessing(false);
+  };
+
+  const handleStopBulk = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setIsBulkProcessing(false);
+  };
+
   const getTeacherName = (id: string) => teachers.find(t => t.id === id)?.name || 'Unknown';
   const getTeacherNIP = (id: string) => teachers.find(t => t.id === id)?.nip || '-';
 
@@ -149,7 +275,7 @@ export function SalarySlipsView({ teachers, slips, onAddSlip, onDeleteSlip, sett
         />
       ) : (
         <>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
             <div>
               <h2 className="text-2xl font-bold text-slate-800">Slip Gaji</h2>
               <p className="text-slate-500 text-sm mt-1">Buat dan cetak slip gaji guru.</p>
@@ -187,6 +313,19 @@ export function SalarySlipsView({ teachers, slips, onAddSlip, onDeleteSlip, sett
                   <span>Rekap Excel</span>
                 </button>
               )}
+              
+              <button
+                onClick={() => {
+                  setBulkMonth(filterMonth);
+                  setBulkYear(filterYear);
+                  setIsBulkModalOpen(true);
+                }}
+                disabled={teachers.length === 0}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              >
+                <Play size={16} />
+                <span>Kirim WA Massal</span>
+              </button>
 
               <button
                 onClick={handleOpenModal}
@@ -194,7 +333,7 @@ export function SalarySlipsView({ teachers, slips, onAddSlip, onDeleteSlip, sett
                 className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
               >
                 <Plus size={18} />
-                <span>Buat Slip Baru</span>
+                <span>Buat Slip Manual</span>
               </button>
             </div>
           </div>
@@ -259,7 +398,124 @@ export function SalarySlipsView({ teachers, slips, onAddSlip, onDeleteSlip, sett
         </>
       )}
 
-      {/* Create Slip Modal */}
+      {/* Bulk Send Modal */}
+      {isBulkModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl flex flex-col my-6">
+            <div className="flex justify-between items-center p-5 border-b border-slate-200">
+              <h3 className="text-xl font-bold text-slate-800">Generate & Kirim WA Massal</h3>
+              {!isBulkProcessing && (
+                <button
+                  onClick={() => setIsBulkModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 font-medium"
+                >
+                  Tutup
+                </button>
+              )}
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {!isBulkProcessing && bulkProgress.current === 0 && (
+                <>
+                  <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl text-sm">
+                    Fitur ini akan secara otomatis membuatkan slip gaji (berdasarkan pengaturan nominal di Data Guru) dan mengirimkan pesan WA (berisi Link Download) ke seluruh <strong>{teachers.length} guru</strong> secara berurutan. Terdapat <strong>jeda 30 detik</strong> di antara pengiriman untuk menghindari nomor Anda diblokir oleh WhatsApp (Anti-Spam).
+                  </div>
+
+                  <div className="flex gap-4 items-end">
+                    <div className="space-y-1 flex-1">
+                      <label className="text-xs font-semibold text-slate-700">Bulan</label>
+                      <select
+                        value={bulkMonth}
+                        onChange={(e) => setBulkMonth(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-sm"
+                      >
+                        {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                    </div>
+                    <div className="space-y-1 flex-1">
+                      <label className="text-xs font-semibold text-slate-700">Tahun</label>
+                      <input
+                        type="number"
+                        value={bulkYear}
+                        onChange={(e) => setBulkYear(Number(e.target.value))}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-sm"
+                      />
+                    </div>
+                    <button
+                      onClick={processBulkSend}
+                      className="px-6 py-2 h-[38px] text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-sm font-bold flex items-center gap-2"
+                    >
+                      <Play size={16} /> Mulai Proses
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {(isBulkProcessing || bulkProgress.current > 0) && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between text-sm font-bold text-slate-700">
+                    <span>Progress Pengiriman: {bulkProgress.current} dari {bulkProgress.total} Guru</span>
+                    {isBulkProcessing && <span className="flex items-center gap-2 text-blue-600"><Loader2 size={16} className="animate-spin" /> Sedang berjalan... (Jeda 30s)</span>}
+                  </div>
+                  
+                  <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                    <div 
+                      className="bg-blue-600 h-3 transition-all duration-300"
+                      style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
+                    ></div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-sm mt-2">
+                    <div className="bg-emerald-50 text-emerald-800 p-3 rounded-lg border border-emerald-100 flex items-center gap-2">
+                      <CheckCircle size={18} /> Sukses: {bulkProgress.success}
+                    </div>
+                    <div className="bg-red-50 text-red-800 p-3 rounded-lg border border-red-100 flex items-center gap-2">
+                      <AlertCircle size={18} /> Gagal: {bulkProgress.failed}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 border border-slate-200 rounded-lg bg-slate-50 overflow-hidden">
+                    <div className="px-4 py-2 bg-slate-100 border-b border-slate-200 text-xs font-bold text-slate-600">
+                      Log Aktivitas
+                    </div>
+                    <div className="p-4 h-48 overflow-y-auto space-y-2 text-xs font-mono">
+                      {bulkLogs.map((log, idx) => (
+                        <div key={idx} className={`flex items-start gap-2 ${log.status === 'success' ? 'text-emerald-700' : log.status === 'failed' ? 'text-red-600' : 'text-slate-500'}`}>
+                          <span className="shrink-0">{log.status === 'success' ? '✅' : log.status === 'failed' ? '❌' : '⏭️'}</span>
+                          <span><strong>{log.name}:</strong> {log.message}</span>
+                        </div>
+                      ))}
+                      {bulkLogs.length === 0 && <div className="text-slate-400 italic">Menunggu proses dimulai...</div>}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-5 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 rounded-b-xl mt-auto">
+              {isBulkProcessing ? (
+                <button
+                  type="button"
+                  onClick={handleStopBulk}
+                  className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                >
+                  Hentikan Proses
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsBulkModalOpen(false)}
+                  className="px-4 py-2 text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
+                >
+                  {bulkProgress.current > 0 ? 'Tutup & Selesai' : 'Batal'}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Slip Modal (Manual) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col my-6 max-h-[90vh]">
