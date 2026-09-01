@@ -80,7 +80,6 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
         backgroundColor: '#ffffff', 
         logging: false,
         useCORS: true,
-        allowTaint: true,
         onclone: (clonedDoc, clonedElement) => {
           handleHtml2CanvasOnClone(clonedDoc, clonedElement);
         }
@@ -114,7 +113,6 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
         backgroundColor: '#ffffff',
         logging: false,
         useCORS: true,
-        allowTaint: true,
         onclone: (clonedDoc, clonedElement) => {
           handleHtml2CanvasOnClone(clonedDoc, clonedElement);
         }
