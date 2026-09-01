@@ -79,6 +79,8 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
         scale: 2, 
         backgroundColor: '#ffffff', 
         logging: false,
+        useCORS: true,
+        allowTaint: true,
         onclone: (clonedDoc, clonedElement) => {
           handleHtml2CanvasOnClone(clonedDoc, clonedElement);
         }
@@ -91,10 +93,11 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
       
       pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
       const filename = `Slip_Gaji_${slip.teacherName.replace(/[^a-zA-Z0-9]/g, '_')}_${slip.month}_${slip.year}.pdf`;
+      
       pdf.save(filename);
     } catch (err) {
       console.error('Error generating PDF:', err);
-      window.print();
+      alert('Gagal membuat PDF. Coba gunakan fitur Cetak.');
     } finally {
       setIsDownloadingPdf(false);
     }
@@ -110,18 +113,22 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
         scale: 2, 
         backgroundColor: '#ffffff',
         logging: false,
+        useCORS: true,
+        allowTaint: true,
         onclone: (clonedDoc, clonedElement) => {
           handleHtml2CanvasOnClone(clonedDoc, clonedElement);
         }
       });
+      
+      const filename = `Slip_Gaji_${slip.teacherName.replace(/[^a-zA-Z0-9]/g, '_')}_${slip.month}_${slip.year}.png`;
       const image = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = image;
-      link.download = `Slip_Gaji_${slip.teacherName.replace(/[^a-zA-Z0-9]/g, '_')}_${slip.month}_${slip.year}.png`;
+      link.download = filename;
       link.click();
     } catch (err) {
       console.error('Error generating image:', err);
-      alert('Gagal mengunduh gambar slip.');
+      alert('Gagal mengunduh gambar slip. Coba gunakan fitur Cetak.');
     } finally {
       setIsDownloadingPng(false);
     }

@@ -63,9 +63,9 @@ export function PublicSlipView({ slipId }: { slipId: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-8">
-      <div className="max-w-4xl mx-auto flex flex-col items-center">
-        <div className="w-full bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-8 overflow-x-auto">
+    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-8 print:bg-white print:p-0 print:min-h-0">
+      <div className="max-w-4xl mx-auto flex flex-col items-center print:block print:max-w-none print:m-0">
+        <div className="w-full bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-8 overflow-x-auto print:overflow-visible print:border-none print:shadow-none print:p-0">
           <SlipPreview slip={slip} settings={settings} isPublic={true} />
         </div>
       </div>
