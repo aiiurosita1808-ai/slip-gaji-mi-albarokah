@@ -77,7 +77,15 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
       const dataUrl = await toJpeg(element, { 
         quality: 0.98,
         backgroundColor: '#ffffff',
-        pixelRatio: 2
+        pixelRatio: 2,
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+        style: {
+          width: `${element.scrollWidth}px`,
+          height: `${element.scrollHeight}px`,
+          margin: '0',
+          transform: 'none'
+        }
       });
       
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -104,7 +112,15 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
       setIsDownloadingPng(true);
       const dataUrl = await toPng(element, { 
         backgroundColor: '#ffffff',
-        pixelRatio: 2
+        pixelRatio: 2,
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+        style: {
+          width: `${element.scrollWidth}px`,
+          height: `${element.scrollHeight}px`,
+          margin: '0',
+          transform: 'none'
+        }
       });
       
       const filename = `Slip_Gaji_${slip.teacherName.replace(/[^a-zA-Z0-9]/g, '_')}_${slip.month}_${slip.year}.png`;
@@ -221,11 +237,13 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
         </div>
       )}
 
-      {/* Slip Document Box */}
-      <div 
-        id="slip-document" 
-        className="bg-white p-6 sm:p-10 rounded-xl shadow-md border border-slate-200 text-slate-900 print:shadow-none print:border-none print:p-0 print:m-0 font-sans max-w-3xl mx-auto"
-      >
+      {/* Scrollable Wrapper for Mobile Export */}
+      <div className="w-full overflow-x-auto print:overflow-visible pb-4">
+        {/* Slip Document Box */}
+        <div 
+          id="slip-document" 
+          className="bg-white p-6 sm:p-10 rounded-xl shadow-md border border-slate-200 text-slate-900 print:shadow-none print:border-none print:p-0 print:m-0 font-sans mx-auto min-w-[768px] max-w-3xl"
+        >
         
         {/* Title */}
         <div className="flex items-center justify-between gap-4 mb-6 border-b-2 border-emerald-600 pb-4">
@@ -504,6 +522,7 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
           </div>
         )}
 
+      </div>
       </div>
     </div>
   );
