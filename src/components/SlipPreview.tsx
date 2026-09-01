@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Teacher, SalarySlip, SchoolSettings } from '../types';
 import { formatRupiah } from '../utils';
 import { Printer, ArrowLeft, Download, Image as ImageIcon, Loader2, Send, CheckCircle2, AlertCircle } from 'lucide-react';
-import { toJpeg, toPng } from 'html-to-image';
+import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { sendSlipViaFonnte, openDirectWhatsappWeb } from '../utils/fonnte';
 
@@ -74,23 +74,33 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
 
     try {
       setIsDownloadingPdf(true);
-      const dataUrl = await toJpeg(element, { 
-        quality: 0.98,
+      const canvas = await html2canvas(element, { 
+        scale: 2,
         backgroundColor: '#ffffff',
-        pixelRatio: 2
+        useCORS: true,
+        logging: false,
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.getElementById('slip-document');
+          if (clonedElement) {
+            clonedElement.style.width = '800px';
+            clonedElement.style.transform = 'none';
+            clonedElement.style.margin = '0';
+          }
+        }
       });
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
       
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      pdf.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
       const filename = `Slip_Gaji_${slip.teacherName.replace(/[^a-zA-Z0-9]/g, '_')}_${slip.month}_${slip.year}.pdf`;
       
       pdf.save(filename);
     } catch (err) {
       console.error('Error generating PDF:', err);
-      alert('Gagal membuat PDF. Coba gunakan fitur Cetak.');
+      alert(`Gagal membuat PDF. Coba gunakan fitur Cetak. Error: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsDownloadingPdf(false);
     }
@@ -102,19 +112,30 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
 
     try {
       setIsDownloadingPng(true);
-      const dataUrl = await toPng(element, { 
+      const canvas = await html2canvas(element, { 
+        scale: 2,
         backgroundColor: '#ffffff',
-        pixelRatio: 2
+        useCORS: true,
+        logging: false,
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.getElementById('slip-document');
+          if (clonedElement) {
+            clonedElement.style.width = '800px';
+            clonedElement.style.transform = 'none';
+            clonedElement.style.margin = '0';
+          }
+        }
       });
       
       const filename = `Slip_Gaji_${slip.teacherName.replace(/[^a-zA-Z0-9]/g, '_')}_${slip.month}_${slip.year}.png`;
+      const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = dataUrl;
       link.download = filename;
       link.click();
     } catch (err) {
       console.error('Error generating image:', err);
-      alert('Gagal mengunduh gambar slip. Coba gunakan fitur Cetak.');
+      alert(`Gagal mengunduh gambar slip. Coba gunakan fitur Cetak. Error: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsDownloadingPng(false);
     }
