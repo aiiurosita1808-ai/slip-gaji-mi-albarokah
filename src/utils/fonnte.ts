@@ -1,8 +1,5 @@
 import { SalarySlip } from '../types';
 import { formatRupiah } from '../utils';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
-import { handleHtml2CanvasOnClone } from './pdfHelper';
 
 export function formatSalarySlipMessage(slip: SalarySlip): string {
   const penerimaanLines: string[] = [
@@ -58,36 +55,6 @@ ${potonganLines.join('\n')}
 ${slipUrl}
 
 _Dibuat oleh: ${slip.createdByName || 'Bendahara'}_`;
-}
-
-export async function generatePdfBlobFromElement(elementId: string, filename: string): Promise<File | null> {
-  const element = document.getElementById(elementId);
-  if (!element) return null;
-
-  try {
-    const canvas = await html2canvas(element, { 
-      scale: 2, 
-      backgroundColor: '#ffffff', 
-      logging: false,
-      onclone: (clonedDoc, clonedElement) => {
-        handleHtml2CanvasOnClone(clonedDoc, clonedElement);
-      }
-    });
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-    
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-    
-    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-    const pdfArrayBuffer = pdf.output('arraybuffer');
-    
-    const pdfBlob = new Blob([pdfArrayBuffer], { type: 'application/pdf' });
-    return new File([pdfBlob], filename, { type: 'application/pdf' });
-  } catch (err) {
-    console.error('Error generating PDF Blob:', err);
-    return null;
-  }
 }
 
 export interface SendFonnteResult {
