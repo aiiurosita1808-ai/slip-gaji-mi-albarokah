@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Teacher, SalarySlip, SchoolSettings } from '../types';
 import { formatRupiah } from '../utils';
 import { Printer, ArrowLeft, Download, Image as ImageIcon, Loader2, Send, CheckCircle2, AlertCircle } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { toJpeg, toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import { sendSlipViaFonnte, openDirectWhatsappWeb } from '../utils/fonnte';
 
@@ -74,27 +74,17 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
 
     try {
       setIsDownloadingPdf(true);
-      const canvas = await html2canvas(element, { 
-        scale: 2,
+      const dataUrl = await toJpeg(element, { 
+        quality: 0.98,
         backgroundColor: '#ffffff',
-        useCORS: true,
-        logging: false,
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.getElementById('slip-document');
-          if (clonedElement) {
-            clonedElement.style.width = '800px';
-            clonedElement.style.transform = 'none';
-            clonedElement.style.margin = '0';
-          }
-        }
+        pixelRatio: 2
       });
-      const imgData = canvas.toDataURL('image/jpeg', 0.98);
       
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
       
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight);
       const filename = `Slip_Gaji_${slip.teacherName.replace(/[^a-zA-Z0-9]/g, '_')}_${slip.month}_${slip.year}.pdf`;
       
       pdf.save(filename);
@@ -112,23 +102,12 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
 
     try {
       setIsDownloadingPng(true);
-      const canvas = await html2canvas(element, { 
-        scale: 2,
+      const dataUrl = await toPng(element, { 
         backgroundColor: '#ffffff',
-        useCORS: true,
-        logging: false,
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.getElementById('slip-document');
-          if (clonedElement) {
-            clonedElement.style.width = '800px';
-            clonedElement.style.transform = 'none';
-            clonedElement.style.margin = '0';
-          }
-        }
+        pixelRatio: 2
       });
       
       const filename = `Slip_Gaji_${slip.teacherName.replace(/[^a-zA-Z0-9]/g, '_')}_${slip.month}_${slip.year}.png`;
-      const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = dataUrl;
       link.download = filename;
@@ -243,14 +222,15 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
       )}
 
       {/* Scrollable Wrapper for Mobile Export */}
-      <div className="w-full overflow-x-auto print:overflow-visible pb-4 flex justify-center">
-        {/* Slip Document Box */}
-        <div 
-          id="slip-document" 
-          className="bg-white p-6 sm:p-10 rounded-xl shadow-md border border-slate-200 text-slate-900 print:shadow-none print:border-none print:p-0 print:m-0 font-sans w-[800px] shrink-0"
-        >
-        
-        {/* Title */}
+      <div className="w-full overflow-x-auto print:overflow-visible pb-4">
+        <div className="min-w-fit flex justify-center">
+          {/* Slip Document Box */}
+          <div 
+            id="slip-document" 
+            className="bg-white p-6 sm:p-10 rounded-xl shadow-md border border-slate-200 text-slate-900 print:shadow-none print:border-none print:p-0 print:m-0 font-sans w-[800px]"
+          >
+          
+          {/* Title */}
         <div className="flex items-center justify-between gap-4 mb-6 border-b-2 border-emerald-600 pb-4">
           <div className="w-20 sm:w-24 shrink-0 flex items-center justify-center">
             {settings?.logoImage ? (
@@ -528,6 +508,7 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
         )}
 
       </div>
+        </div>
       </div>
     </div>
   );
