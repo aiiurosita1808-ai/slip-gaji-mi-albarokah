@@ -78,7 +78,7 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
       const canvas = await html2canvas(element, { 
         scale: 2,
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         backgroundColor: '#ffffff',
         logging: false
       });
@@ -95,7 +95,13 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
       pdf.save(filename);
     } catch (err) {
       console.error('Error generating PDF:', err);
-      alert(`Gagal membuat PDF. Coba gunakan fitur Cetak. Error: ${err instanceof Error ? err.message : String(err)}`);
+      // Fallback: If direct canvas generation fails, offer native print / save as PDF
+      const usePrint = window.confirm(
+        'Gagal mengunduh file PDF secara langsung. Apakah Anda ingin mencetak atau menyimpannya sebagai PDF melalui jendela Cetak peramban?'
+      );
+      if (usePrint) {
+        window.print();
+      }
     } finally {
       setIsDownloadingPdf(false);
     }
@@ -111,7 +117,7 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
       const canvas = await html2canvas(element, { 
         scale: 2,
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         backgroundColor: '#ffffff',
         logging: false
       });
@@ -124,7 +130,7 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
       link.click();
     } catch (err) {
       console.error('Error generating image:', err);
-      alert(`Gagal mengunduh gambar slip. Coba gunakan fitur Cetak. Error: ${err instanceof Error ? err.message : String(err)}`);
+      alert(`Gagal mengunduh gambar PNG. Silakan gunakan fitur "Cetak Slip" untuk menyimpan slip.`);
     } finally {
       setIsDownloadingPng(false);
     }
@@ -138,7 +144,7 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
           {!isPublic && onBack && (
             <button 
               onClick={onBack}
-              className="flex items-center gap-2 px-4 py-2 text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors font-medium shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 text-[#334155] bg-white border border-[#cbd5e1] rounded-lg hover:bg-[#f8fafc] transition-colors font-medium shadow-sm"
             >
               <ArrowLeft size={18} />
               <span>Kembali</span>
@@ -152,7 +158,7 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
             <button
               onClick={handleSendWhatsapp}
               disabled={isSendingWa}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition-colors shadow-sm font-medium text-sm disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-[#059669] text-[#ffffff] hover:bg-[#047857] rounded-lg transition-colors shadow-sm font-medium text-sm disabled:opacity-50"
               title="Kirim Otomatis Slip via Fonnte WA Gateway"
             >
               {isSendingWa ? (
@@ -173,10 +179,10 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
           <button 
             onClick={handleDownloadPng}
             disabled={isDownloadingPng}
-            className="flex items-center gap-2 px-3.5 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors font-medium text-sm disabled:opacity-50"
+            className="flex items-center gap-2 px-3.5 py-2 bg-[#f1f5f9] text-[#334155] hover:bg-[#e2e8f0] border border-[#cbd5e1] rounded-lg transition-colors font-medium text-sm disabled:opacity-50"
             title="Download sebagai gambar PNG"
           >
-            {isDownloadingPng ? <Loader2 size={16} className="animate-spin" /> : <ImageIcon size={16} className="text-blue-600" />}
+            {isDownloadingPng ? <Loader2 size={16} className="animate-spin" /> : <ImageIcon size={16} className="text-[#2563eb]" />}
             <span>Download PNG</span>
           </button>
 
@@ -184,7 +190,7 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
           <button 
             onClick={handleDownloadPdf}
             disabled={isDownloadingPdf}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg transition-colors shadow-sm font-medium text-sm disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-[#059669] text-[#ffffff] hover:bg-[#047857] rounded-lg transition-colors shadow-sm font-medium text-sm disabled:opacity-50"
             title="Download file PDF Slip Gaji"
           >
             {isDownloadingPdf ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
@@ -194,7 +200,7 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
           {/* Cetak */}
           <button 
             onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors shadow-sm font-medium text-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-[#1e293b] text-[#ffffff] rounded-lg hover:bg-[#0f172a] transition-colors shadow-sm font-medium text-sm"
             title="Cetak langsung / Simpan PDF Browser"
           >
             <Printer size={16} />
@@ -207,25 +213,25 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
       {waStatus && (
         <div className={`mb-6 p-4 rounded-xl border flex items-start justify-between text-sm print:hidden ${
           waStatus.type === 'success'
-            ? 'bg-emerald-50 text-emerald-900 border-emerald-300'
-            : 'bg-amber-50 text-amber-900 border-amber-300'
+            ? 'bg-[#ecfdf5] text-[#064e3b] border-[#6ee7b7]'
+            : 'bg-[#fffbeb] text-[#78350f] border-[#fcd34d]'
         }`}>
           <div className="flex items-start gap-2.5">
             {waStatus.type === 'success' ? (
-              <CheckCircle2 size={18} className="text-emerald-700 shrink-0 mt-0.5" />
+              <CheckCircle2 size={18} className="text-[#047857] shrink-0 mt-0.5" />
             ) : (
-              <AlertCircle size={18} className="text-amber-700 shrink-0 mt-0.5" />
+              <AlertCircle size={18} className="text-[#b45309] shrink-0 mt-0.5" />
             )}
             <div>
               <p className="font-semibold">{waStatus.text}</p>
               {!token && waStatus.type === 'error' && (
-                <p className="text-xs text-amber-800 mt-1">
+                <p className="text-xs text-[#92400e] mt-1">
                   Tip: Buka menu <strong>Pengaturan</strong> dan isikan <strong>API Token Fonnte</strong> untuk mengaktifkan pengiriman PDF otomatis secara langsung tanpa membuka WhatsApp Web.
                 </p>
               )}
             </div>
           </div>
-          <button onClick={() => setWaStatus(null)} className="text-slate-400 hover:text-slate-600 text-xs ml-4 font-bold">
+          <button onClick={() => setWaStatus(null)} className="text-[#94a3b8] hover:text-[#475569] text-xs ml-4 font-bold">
             ✕
           </button>
         </div>
@@ -244,7 +250,12 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
         <div className="flex items-center justify-between gap-4 mb-6 border-b-2 border-[#059669] pb-4">
           <div className="w-20 sm:w-24 shrink-0 flex items-center justify-center">
             {settings?.logoImage ? (
-              <img src={settings.logoImage} alt="Logo" className="max-w-[80px] sm:max-w-[96px] h-auto object-contain" />
+              <img 
+                src={settings.logoImage} 
+                crossOrigin="anonymous"
+                alt="Logo" 
+                className="max-w-[80px] sm:max-w-[96px] h-auto object-contain" 
+              />
             ) : (
               <div className="w-16 h-16 bg-[#f1f5f9] rounded-full flex items-center justify-center text-[#cbd5e1]">
                 <ImageIcon size={24} />
@@ -487,6 +498,7 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
               {settings?.stampImage && (
                 <img 
                   src={settings.stampImage} 
+                  crossOrigin="anonymous"
                   alt="Stempel" 
                   className="absolute top-1/2 left-1/4 -translate-x-4 -translate-y-1/2 w-28 h-28 object-contain opacity-75 mix-blend-multiply pointer-events-none" 
                 />
@@ -495,6 +507,7 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
               {settings?.signatureImage && (
                 <img 
                   src={settings.signatureImage} 
+                  crossOrigin="anonymous"
                   alt="Tanda Tangan" 
                   className="relative z-10 w-40 h-24 object-contain pointer-events-none" 
                 />
