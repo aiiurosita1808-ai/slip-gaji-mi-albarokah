@@ -239,24 +239,24 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
           {/* Slip Document Box */}
           <div 
             id="slip-document" 
-            className="bg-white p-6 sm:p-10 rounded-xl shadow-md border border-slate-200 text-slate-900 print:shadow-none print:border-none print:p-0 print:m-0 font-sans w-[800px]"
+            className="bg-[#ffffff] p-6 sm:p-10 rounded-xl shadow-md border border-[#e2e8f0] text-[#0f172a] print:shadow-none print:border-none print:p-0 print:m-0 font-sans w-[800px]"
           >
           
           {/* Title */}
-        <div className="flex items-center justify-between gap-4 mb-6 border-b-2 border-emerald-600 pb-4">
+        <div className="flex items-center justify-between gap-4 mb-6 border-b-2 border-[#059669] pb-4">
           <div className="w-20 sm:w-24 shrink-0 flex items-center justify-center">
             {settings?.logoImage ? (
               <img src={settings.logoImage} alt="Logo" className="max-w-[80px] sm:max-w-[96px] h-auto object-contain" />
             ) : (
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-300">
+              <div className="w-16 h-16 bg-[#f1f5f9] rounded-full flex items-center justify-center text-[#cbd5e1]">
                 <ImageIcon size={24} />
               </div>
             )}
           </div>
           <div className="text-center flex-1">
-            <h1 className="text-2xl sm:text-3xl tracking-wider uppercase text-slate-900 font-extrabold">SLIP GAJI</h1>
-            <h2 className="text-xl sm:text-2xl uppercase text-slate-900 mt-0.5 font-bold">{slip.schoolName || 'MI AL-BAROKAH'}</h2>
-            <p className="text-xs font-semibold text-slate-500 uppercase mt-1">PERIODE: {slip.month} {slip.year}</p>
+            <h1 className="text-2xl sm:text-3xl tracking-wider uppercase text-[#0f172a] font-extrabold">SLIP GAJI</h1>
+            <h2 className="text-xl sm:text-2xl uppercase text-[#0f172a] mt-0.5 font-bold">{slip.schoolName || 'MI AL-BAROKAH'}</h2>
+            <p className="text-xs font-semibold text-[#64748b] uppercase mt-1">PERIODE: {slip.month} {slip.year}</p>
           </div>
           <div className="w-20 sm:w-24 shrink-0"></div> {/* Spacer for symmetry */}
         </div>
@@ -265,27 +265,27 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm font-semibold mb-6">
           <div className="space-y-2">
             <div className="flex items-center">
-              <span className="w-24 text-slate-800 font-bold">Nama</span>
+              <span className="w-24 text-[#1e293b] font-bold">Nama</span>
               <span className="mr-2">:</span>
-              <span className="flex-1 border-b border-slate-800 pb-0.5 text-slate-900 font-bold">{slip.teacherName}</span>
+              <span className="flex-1 border-b border-[#1e293b] pb-0.5 text-[#0f172a] font-bold">{slip.teacherName}</span>
             </div>
             <div className="flex items-center">
-              <span className="w-24 text-slate-800 font-bold">Jabatan</span>
+              <span className="w-24 text-[#1e293b] font-bold">Jabatan</span>
               <span className="mr-2">:</span>
-              <span className="flex-1 border-b border-slate-800 pb-0.5 text-slate-900">{slip.position || '-'}</span>
+              <span className="flex-1 border-b border-[#1e293b] pb-0.5 text-[#0f172a]">{slip.position || '-'}</span>
             </div>
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center">
-              <span className="w-32 text-slate-800 font-bold">Tugas Tambahan</span>
+              <span className="w-32 text-[#1e293b] font-bold">Tugas Tambahan</span>
               <span className="mr-2">:</span>
-              <span className="flex-1 border-b border-slate-800 pb-0.5 text-slate-900">{slip.tugasTambahan || '-'}</span>
+              <span className="flex-1 border-b border-[#1e293b] pb-0.5 text-[#0f172a]">{slip.tugasTambahan || '-'}</span>
             </div>
             <div className="flex items-center">
-              <span className="w-32 text-slate-800 font-bold">Masa Kerja</span>
+              <span className="w-32 text-[#1e293b] font-bold">Masa Kerja</span>
               <span className="mr-2">:</span>
-              <span className="flex-1 border-b border-slate-800 pb-0.5 text-slate-900">{slip.masaKerja || '-'}</span>
+              <span className="flex-1 border-b border-[#1e293b] pb-0.5 text-[#0f172a]">{slip.masaKerja || '-'}</span>
             </div>
           </div>
         </div>
@@ -293,7 +293,7 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
         {/* Table Header Bar */}
         <div className="w-full text-sm mb-6">
           {/* Green Border Top and Bottom Header */}
-          <div className="grid grid-cols-2 border-t-2 border-b-2 border-emerald-600 py-1.5 font-bold text-emerald-700 text-sm tracking-wide">
+          <div className="grid grid-cols-2 border-t-2 border-b-2 border-[#059669] py-1.5 font-bold text-[#047857] text-sm tracking-wide">
             <div>PENERIMAAN (A)</div>
             <div>POTONGAN (B)</div>
           </div>
@@ -304,50 +304,50 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
             {/* PENERIMAAN Column (Left) */}
             <div className="space-y-2.5">
               <div className="flex justify-between items-center">
-                <span className="text-slate-800">Gaji Pokok</span>
-                <div className="flex items-center gap-1 font-mono text-slate-900">
+                <span className="text-[#1e293b]">Gaji Pokok</span>
+                <div className="flex items-center gap-1 font-mono text-[#0f172a]">
                   <span>Rp</span>
-                  <span className="border-b border-slate-800 min-w-[110px] text-right pb-0.5 font-semibold">
+                  <span className="border-b border-[#1e293b] min-w-[110px] text-right pb-0.5 font-semibold">
                     {formatRupiah(slip.baseSalary).replace('Rp', '').trim()}
                   </span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-slate-800">Beban Jam Mengajar (JTM)</span>
-                <div className="flex items-center gap-1 font-mono text-slate-900">
+                <span className="text-[#1e293b]">Beban Jam Mengajar (JTM)</span>
+                <div className="flex items-center gap-1 font-mono text-[#0f172a]">
                   <span>Rp</span>
-                  <span className="border-b border-slate-800 min-w-[110px] text-right pb-0.5 font-semibold">
+                  <span className="border-b border-[#1e293b] min-w-[110px] text-right pb-0.5 font-semibold">
                     {formatRupiah(slip.bebanJTM).replace('Rp', '').trim()}
                   </span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-slate-800">Insentif Walas</span>
-                <div className="flex items-center gap-1 font-mono text-slate-900">
+                <span className="text-[#1e293b]">Insentif Walas</span>
+                <div className="flex items-center gap-1 font-mono text-[#0f172a]">
                   <span>Rp</span>
-                  <span className="border-b border-slate-800 min-w-[110px] text-right pb-0.5 font-semibold">
+                  <span className="border-b border-[#1e293b] min-w-[110px] text-right pb-0.5 font-semibold">
                     {formatRupiah(slip.insentifWalas).replace('Rp', '').trim()}
                   </span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-slate-800">Insentif Kinerja Tahunan</span>
-                <div className="flex items-center gap-1 font-mono text-slate-900">
+                <span className="text-[#1e293b]">Insentif Kinerja Tahunan</span>
+                <div className="flex items-center gap-1 font-mono text-[#0f172a]">
                   <span>Rp</span>
-                  <span className="border-b border-slate-800 min-w-[110px] text-right pb-0.5 font-semibold">
+                  <span className="border-b border-[#1e293b] min-w-[110px] text-right pb-0.5 font-semibold">
                     {formatRupiah(slip.insentifKinerjaTahunan).replace('Rp', '').trim()}
                   </span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-slate-800">Insentif Kinerja Bulanan</span>
-                <div className="flex items-center gap-1 font-mono text-slate-900">
+                <span className="text-[#1e293b]">Insentif Kinerja Bulanan</span>
+                <div className="flex items-center gap-1 font-mono text-[#0f172a]">
                   <span>Rp</span>
-                  <span className="border-b border-slate-800 min-w-[110px] text-right pb-0.5 font-semibold">
+                  <span className="border-b border-[#1e293b] min-w-[110px] text-right pb-0.5 font-semibold">
                     {formatRupiah(slip.insentifKinerjaBulanan).replace('Rp', '').trim()}
                   </span>
                 </div>
@@ -355,10 +355,10 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
 
               {Boolean(slip.insentifTusasTambahan) && (
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-800">Insentif Tusas Tambahan</span>
-                  <div className="flex items-center gap-1 font-mono text-slate-900">
+                  <span className="text-[#1e293b]">Insentif Tusas Tambahan</span>
+                  <div className="flex items-center gap-1 font-mono text-[#0f172a]">
                     <span>Rp</span>
-                    <span className="border-b border-slate-800 min-w-[110px] text-right pb-0.5 font-semibold">
+                    <span className="border-b border-[#1e293b] min-w-[110px] text-right pb-0.5 font-semibold">
                       {formatRupiah(slip.insentifTusasTambahan || 0).replace('Rp', '').trim()}
                     </span>
                   </div>
@@ -367,10 +367,10 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
 
               {Boolean(slip.insentifEskul) && (
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-800">Insentif Kegiatan Eskul</span>
-                  <div className="flex items-center gap-1 font-mono text-slate-900">
+                  <span className="text-[#1e293b]">Insentif Kegiatan Eskul</span>
+                  <div className="flex items-center gap-1 font-mono text-[#0f172a]">
                     <span>Rp</span>
-                    <span className="border-b border-slate-800 min-w-[110px] text-right pb-0.5 font-semibold">
+                    <span className="border-b border-[#1e293b] min-w-[110px] text-right pb-0.5 font-semibold">
                       {formatRupiah(slip.insentifEskul || 0).replace('Rp', '').trim()}
                     </span>
                   </div>
@@ -378,40 +378,40 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
               )}
 
               <div className="flex justify-between items-center">
-                <span className="text-slate-800">Masa Kerja</span>
-                <div className="flex items-center gap-1 font-mono text-slate-900">
+                <span className="text-[#1e293b]">Masa Kerja</span>
+                <div className="flex items-center gap-1 font-mono text-[#0f172a]">
                   <span>Rp</span>
-                  <span className="border-b border-slate-800 min-w-[110px] text-right pb-0.5 font-semibold">
+                  <span className="border-b border-[#1e293b] min-w-[110px] text-right pb-0.5 font-semibold">
                     {formatRupiah(slip.tunjanganMasaKerja).replace('Rp', '').trim()}
                   </span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-slate-800">Pendidikan</span>
-                <div className="flex items-center gap-1 font-mono text-slate-900">
+                <span className="text-[#1e293b]">Pendidikan</span>
+                <div className="flex items-center gap-1 font-mono text-[#0f172a]">
                   <span>Rp</span>
-                  <span className="border-b border-slate-800 min-w-[110px] text-right pb-0.5 font-semibold">
+                  <span className="border-b border-[#1e293b] min-w-[110px] text-right pb-0.5 font-semibold">
                     {formatRupiah(slip.tunjanganPendidikan).replace('Rp', '').trim()}
                   </span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-slate-800">Iuran BPJS</span>
-                <div className="flex items-center gap-1 font-mono text-slate-900">
+                <span className="text-[#1e293b]">Iuran BPJS</span>
+                <div className="flex items-center gap-1 font-mono text-[#0f172a]">
                   <span>Rp</span>
-                  <span className="border-b border-slate-800 min-w-[110px] text-right pb-0.5 font-semibold">
+                  <span className="border-b border-[#1e293b] min-w-[110px] text-right pb-0.5 font-semibold">
                     {formatRupiah(slip.tunjanganBPJS).replace('Rp', '').trim()}
                   </span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-slate-800">Iuran Qurban</span>
-                <div className="flex items-center gap-1 font-mono text-slate-900">
+                <span className="text-[#1e293b]">Iuran Qurban</span>
+                <div className="flex items-center gap-1 font-mono text-[#0f172a]">
                   <span>Rp</span>
-                  <span className="border-b border-slate-800 min-w-[110px] text-right pb-0.5 font-semibold">
+                  <span className="border-b border-[#1e293b] min-w-[110px] text-right pb-0.5 font-semibold">
                     {formatRupiah(slip.tunjanganQurban).replace('Rp', '').trim()}
                   </span>
                 </div>
@@ -421,20 +421,20 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
             {/* POTONGAN Column (Right) */}
             <div className="space-y-2.5 mt-4 md:mt-0">
               <div className="flex justify-between items-center">
-                <span className="text-slate-800">Iuran BPJS Ketenagakerjaan</span>
-                <div className="flex items-center gap-1 font-mono text-slate-900">
+                <span className="text-[#1e293b]">Iuran BPJS Ketenagakerjaan</span>
+                <div className="flex items-center gap-1 font-mono text-[#0f172a]">
                   <span>Rp</span>
-                  <span className="border-b border-slate-800 min-w-[110px] text-right pb-0.5 font-semibold">
+                  <span className="border-b border-[#1e293b] min-w-[110px] text-right pb-0.5 font-semibold">
                     {formatRupiah(slip.potonganBPJSKetenagakerjaan).replace('Rp', '').trim()}
                   </span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-slate-800">Iuran Qurban</span>
-                <div className="flex items-center gap-1 font-mono text-slate-900">
+                <span className="text-[#1e293b]">Iuran Qurban</span>
+                <div className="flex items-center gap-1 font-mono text-[#0f172a]">
                   <span>Rp</span>
-                  <span className="border-b border-slate-800 min-w-[110px] text-right pb-0.5 font-semibold">
+                  <span className="border-b border-[#1e293b] min-w-[110px] text-right pb-0.5 font-semibold">
                     {formatRupiah(slip.potonganQurban).replace('Rp', '').trim()}
                   </span>
                 </div>
@@ -444,12 +444,12 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
           </div>
 
           {/* Green Line Border Totals Bar */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 border-t-2 border-b-2 border-emerald-600 py-2 mt-6 font-bold text-slate-900">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 border-t-2 border-b-2 border-[#059669] py-2 mt-6 font-bold text-[#0f172a]">
             <div className="flex justify-between items-center">
               <span>JUMLAH PENERIMAAN</span>
               <div className="flex items-center gap-1 font-mono">
                 <span>Rp</span>
-                <span className="border-b border-slate-800 min-w-[110px] text-right font-extrabold">
+                <span className="border-b border-[#1e293b] min-w-[110px] text-right font-extrabold">
                   {formatRupiah(slip.totalPenerimaan).replace('Rp', '').trim()}
                 </span>
               </div>
@@ -459,7 +459,7 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
               <span>JUMLAH POTONGAN</span>
               <div className="flex items-center gap-1 font-mono">
                 <span>Rp</span>
-                <span className="border-b border-slate-800 min-w-[110px] text-right font-extrabold">
+                <span className="border-b border-[#1e293b] min-w-[110px] text-right font-extrabold">
                   {formatRupiah(slip.totalPotongan).replace('Rp', '').trim()}
                 </span>
               </div>
@@ -467,11 +467,11 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
           </div>
 
           {/* TOTAL YANG DITERIMA */}
-          <div className="flex flex-wrap items-center gap-2 mt-6 text-base font-bold text-slate-900">
+          <div className="flex flex-wrap items-center gap-2 mt-6 text-base font-bold text-[#0f172a]">
             <span>TOTAL YANG DITERIMA (A-B):</span>
             <div className="flex items-center gap-1 font-mono">
               <span>Rp</span>
-              <span className="border-b-2 border-slate-900 text-lg font-extrabold px-2 pb-0.5 min-w-[160px]">
+              <span className="border-b-2 border-[#0f172a] text-lg font-extrabold px-2 pb-0.5 min-w-[160px]">
                 {formatRupiah(slip.netSalary).replace('Rp', '').trim()}
               </span>
             </div>
@@ -481,8 +481,8 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
         {/* Signature Section */}
         <div className="mt-12 flex justify-end">
           <div className="text-center min-w-[220px]">
-            <p className="mb-1 text-slate-600 text-sm">Sumedang, {new Date(slip.issueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-            <p className="font-bold text-slate-800 mb-2">Bendahara / Pembuat Slip</p>
+            <p className="mb-1 text-[#475569] text-sm">Sumedang, {new Date(slip.issueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+            <p className="font-bold text-[#1e293b] mb-2">Bendahara / Pembuat Slip</p>
             
             <div className="relative h-28 flex items-center justify-center my-2">
               {/* Stamp (behind signature) */}
@@ -503,18 +503,18 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
               )}
               {/* Placeholder line if no signature */}
               {!settings?.signatureImage && (
-                <div className="w-48 border-b-2 border-slate-300 absolute bottom-4 left-1/2 -translate-x-1/2"></div>
+                <div className="w-48 border-b-2 border-[#cbd5e1] absolute bottom-4 left-1/2 -translate-x-1/2"></div>
               )}
             </div>
 
-            <p className="font-bold text-slate-900 underline underline-offset-4">
+            <p className="font-bold text-[#0f172a] underline underline-offset-4">
               {slip.createdByName || 'Bendahara'}
             </p>
           </div>
         </div>
 
         {slip.notes && (
-          <div className="mt-6 pt-3 border-t border-slate-200 text-xs text-slate-500 italic">
+          <div className="mt-6 pt-3 border-t border-[#e2e8f0] text-xs text-[#64748b] italic">
             Catatan: {slip.notes}
           </div>
         )}
