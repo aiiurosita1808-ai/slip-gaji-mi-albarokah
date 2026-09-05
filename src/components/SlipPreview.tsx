@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Teacher, SalarySlip, SchoolSettings } from '../types';
 import { formatRupiah } from '../utils';
 import { Printer, ArrowLeft, Download, Image as ImageIcon, Loader2, Send, CheckCircle2, AlertCircle } from 'lucide-react';
-import { toPng, toJpeg } from 'html-to-image';
+import html2canvas from 'html2canvas-pro';
 import { jsPDF } from 'jspdf';
 import { sendSlipViaFonnte, openDirectWhatsappWeb } from '../utils/fonnte';
 
@@ -75,20 +75,19 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
     try {
       setIsDownloadingPdf(true);
       
-      const imgData = await toJpeg(element, { 
-        quality: 0.98,
+      const canvas = await html2canvas(element, { 
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
         backgroundColor: '#ffffff',
-        pixelRatio: 2,
-        cacheBust: true,
-        style: {
-          margin: '0',
-          transform: 'none'
-        }
+        logging: false
       });
+      
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
       
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
       pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
       const filename = `Slip_Gaji_${slip.teacherName.replace(/[^a-zA-Z0-9]/g, '_')}_${slip.month}_${slip.year}.pdf`;
@@ -109,16 +108,15 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
     try {
       setIsDownloadingPng(true);
       
-      const dataUrl = await toPng(element, { 
+      const canvas = await html2canvas(element, { 
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
         backgroundColor: '#ffffff',
-        pixelRatio: 2,
-        cacheBust: true,
-        style: {
-          margin: '0',
-          transform: 'none'
-        }
+        logging: false
       });
       
+      const dataUrl = canvas.toDataURL('image/png');
       const filename = `Slip_Gaji_${slip.teacherName.replace(/[^a-zA-Z0-9]/g, '_')}_${slip.month}_${slip.year}.png`;
       const link = document.createElement('a');
       link.href = dataUrl;
