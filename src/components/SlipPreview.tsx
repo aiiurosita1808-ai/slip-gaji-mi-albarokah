@@ -466,55 +466,54 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
                 font-family: monospace, Courier, sans-serif !important;
               }
               .slip-signature-wrapper {
-                margin-top: 40px !important;
+                margin-top: 36px !important;
                 display: flex !important;
                 justify-content: flex-end !important;
               }
               .slip-signature-box {
                 text-align: center !important;
-                min-width: 220px !important;
+                width: 250px !important;
+                min-width: 250px !important;
               }
               .slip-signature-canvas {
                 position: relative !important;
-                height: 112px !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                margin: 8px 0 !important;
+                width: 250px !important;
+                height: 100px !important;
+                margin: 4px auto !important;
               }
               .slip-stamp-img {
                 position: absolute !important;
-                top: 50% !important;
-                left: 25% !important;
-                transform: translate(-16px, -50%) !important;
-                width: 112px !important;
-                height: 112px !important;
+                top: 5px !important;
+                left: 10px !important;
+                width: 90px !important;
+                height: 90px !important;
                 object-fit: contain !important;
-                opacity: 0.75 !important;
+                opacity: 0.8 !important;
                 mix-blend-mode: multiply !important;
                 pointer-events: none !important;
+                z-index: 5 !important;
               }
               .slip-sign-img {
-                position: relative !important;
+                position: absolute !important;
+                top: 10px !important;
                 z-index: 10 !important;
-                width: 160px !important;
-                height: 96px !important;
+                width: 150px !important;
+                height: 80px !important;
                 object-fit: contain !important;
                 pointer-events: none !important;
               }
               .slip-signature-line {
-                width: 192px !important;
+                width: 160px !important;
                 border-bottom: 2px solid #cbd5e1 !important;
                 position: absolute !important;
-                bottom: 16px !important;
-                left: 50% !important;
-                transform: translateX(-50%) !important;
+                bottom: 15px !important;
               }
               .slip-signer-name {
                 font-weight: 700 !important;
                 color: #0f172a !important;
                 text-decoration: underline !important;
                 text-underline-offset: 4px !important;
+                margin-top: 6px !important;
               }
               .slip-notes-footer {
                 margin-top: 24px !important;
@@ -768,37 +767,97 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
         </div>
 
         {/* Signature Section */}
-        <div className="slip-signature-wrapper mt-12 flex justify-end">
-          <div className="slip-signature-box text-center min-w-[220px]">
-            <p className="mb-1 text-[#475569] text-sm">Sumedang, {new Date(slip.issueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-            <p className="font-bold text-[#1e293b] mb-2">Bendahara / Pembuat Slip</p>
+        <div 
+          className="slip-signature-wrapper mt-12 flex justify-end"
+          style={{ marginTop: '36px', display: 'flex', justifyContent: 'flex-end' }}
+        >
+          <div 
+            className="slip-signature-box text-center min-w-[220px]"
+            style={{ textAlign: 'center', width: '250px', minWidth: '250px' }}
+          >
+            <p 
+              className="mb-1 text-[#475569] text-sm"
+              style={{ marginBottom: '4px', color: '#475569', fontSize: '13px' }}
+            >
+              Sumedang, {new Date(slip.issueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+            <p 
+              className="font-bold text-[#1e293b] mb-2"
+              style={{ fontWeight: 700, color: '#1e293b', marginBottom: '8px', fontSize: '14px' }}
+            >
+              Bendahara / Pembuat Slip
+            </p>
             
-            <div className="slip-signature-canvas relative h-28 flex items-center justify-center my-2">
-              {/* Stamp (behind signature) */}
+            <div 
+              className="slip-signature-canvas relative my-2"
+              style={{ position: 'relative', width: '250px', height: '100px', margin: '4px auto' }}
+            >
+              {/* Stamp (on the left edge of signature) */}
               {settings?.stampImage && (
                 <img 
                   src={settings.stampImage} 
                   crossOrigin="anonymous"
                   alt="Stempel" 
-                  className="slip-stamp-img absolute top-1/2 left-1/4 -translate-x-4 -translate-y-1/2 w-28 h-28 object-contain opacity-75 mix-blend-multiply pointer-events-none" 
+                  className="slip-stamp-img pointer-events-none"
+                  style={{
+                    position: 'absolute',
+                    top: '5px',
+                    left: '10px',
+                    width: '90px',
+                    height: '90px',
+                    objectFit: 'contain',
+                    opacity: 0.8,
+                    mixBlendMode: 'multiply',
+                    pointerEvents: 'none',
+                    zIndex: 5
+                  }}
                 />
               )}
-              {/* Signature (front) */}
+              {/* Signature */}
               {settings?.signatureImage && (
                 <img 
                   src={settings.signatureImage} 
                   crossOrigin="anonymous"
                   alt="Tanda Tangan" 
-                  className="slip-sign-img relative z-10 w-40 h-24 object-contain pointer-events-none" 
+                  className="slip-sign-img pointer-events-none"
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    left: settings?.stampImage ? '75px' : '50px',
+                    width: '150px',
+                    height: '80px',
+                    objectFit: 'contain',
+                    pointerEvents: 'none',
+                    zIndex: 10
+                  }}
                 />
               )}
               {/* Placeholder line if no signature */}
               {!settings?.signatureImage && (
-                <div className="slip-signature-line w-48 border-b-2 border-[#cbd5e1] absolute bottom-4 left-1/2 -translate-x-1/2"></div>
+                <div 
+                  className="slip-signature-line"
+                  style={{
+                    width: '160px',
+                    borderBottom: '2px solid #cbd5e1',
+                    position: 'absolute',
+                    bottom: '15px',
+                    left: settings?.stampImage ? '70px' : '45px'
+                  }}
+                ></div>
               )}
             </div>
 
-            <p className="slip-signer-name font-bold text-[#0f172a] underline underline-offset-4">
+            <p 
+              className="slip-signer-name font-bold text-[#0f172a] underline underline-offset-4"
+              style={{
+                fontWeight: 700,
+                color: '#0f172a',
+                textDecoration: 'underline',
+                textUnderlineOffset: '4px',
+                marginTop: '6px',
+                fontSize: '14px'
+              }}
+            >
               {slip.createdByName || 'Bendahara'}
             </p>
           </div>
