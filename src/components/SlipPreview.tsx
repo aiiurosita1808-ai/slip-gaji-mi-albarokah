@@ -779,7 +779,7 @@ export function SlipPreview({ slip, teacher, settings, onBack, isPublic }: SlipP
               className="mb-1 text-[#475569] text-sm"
               style={{ marginBottom: '4px', color: '#475569', fontSize: '13px' }}
             >
-              Sumedang, {new Date(slip.issueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+              Serang, {new Date(slip.issueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
             <p 
               className="font-bold text-[#1e293b] mb-2"
